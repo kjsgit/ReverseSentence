@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface KJSViewController : UIViewController
+@interface KJSViewController : UIViewController <UITextViewDelegate>
 
 
 @property (weak, nonatomic) IBOutlet UITextView *inputTextView;
