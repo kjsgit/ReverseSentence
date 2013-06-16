@@ -75,9 +75,13 @@ BOOL keyboardDisplayed = NO;
     }
     NSString  *input = [[self inputTextView]text];
     NSArray   *words = [input componentsSeparatedByString:@" "];
-    self.outputTextView.text = [self reverseWords:words];
     
-    NSLog(@"Sentence Reversed: >>%@<<", self.outputTextView.text);
+    if(self.inputTextView.text.length)
+    {
+        self.outputTextView.text = [self reverseWordsAndSwapCapitalization:words];
+        NSLog(@"Sentence Reversed: >>%@<<", self.outputTextView.text);
+    }
+    
 }
 
 - (IBAction)clearButtonAction:(id)sender
@@ -90,6 +94,7 @@ BOOL keyboardDisplayed = NO;
     self.outputTextView.text = @"";
 }
 
+
 -(NSString *)reverseWords:(NSArray *)words
 {
     NSMutableString *reversed = [NSMutableString stringWithCapacity:1];
@@ -97,6 +102,55 @@ BOOL keyboardDisplayed = NO;
         [reversed appendFormat:@"%@%@", words[i], (i>0 ? @" " : @"") ];
     }
     return reversed;
+}
+
+
+-(NSString *)reverseWordsAndSwapCapitalization:(NSArray *)words
+{
+    // assumption: toggle case on First / Last words no matter what case is
+    NSMutableString *reversed = [NSMutableString stringWithCapacity:1];
+    int last  = [words count]-1;
+    int first = 0;
+    for (int i=last; i>=first; i--) {
+        if(i == first || i == last)
+        {
+            [self toggleCase:words[i]];
+            [reversed appendFormat:@"%@%@", [self toggleCase:words[i]], (i>0 ? @" " : @"") ];
+        }
+        else
+        {
+            [reversed appendFormat:@"%@%@", words[i], (i>0 ? @" " : @"") ];
+        }
+    }
+    return reversed;
+}
+
+-(BOOL) isFirstLetterUpperCase:(NSString *)str
+{
+    return[[NSCharacterSet uppercaseLetterCharacterSet] characterIsMember:[str characterAtIndex:0]];
+}
+
+-(BOOL) isFirstLetterLowerCase:(NSString *)str
+{
+    return[[NSCharacterSet lowercaseLetterCharacterSet] characterIsMember:[str characterAtIndex:0]];
+}
+
+-(NSString *)toggleCase:(NSMutableString *)str
+{
+    NSString *swapCase;
+    if([self isFirstLetterLowerCase:str])
+    {
+        swapCase = [str stringByReplacingCharactersInRange:NSMakeRange(0,1) withString:[[str substringToIndex:1] capitalizedString]];
+    }
+    else if([self isFirstLetterUpperCase:str])
+    {
+        swapCase = [str stringByReplacingCharactersInRange:NSMakeRange(0,1) withString:[[str substringToIndex:1] lowercaseString]];
+    }
+    else
+    {
+        swapCase = [NSString stringWithString:str];
+    }
+    return swapCase;
 }
 
 
@@ -111,11 +165,9 @@ BOOL keyboardDisplayed = NO;
 }
 
 
-#pragma mark - UITextViewDelegate
-
 -(BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:     (NSString *)text
 {
-    // NOTE: for this example dismiss keyboar on "Return" key
+    // assumption: dismiss keyboard on "Return" key
     if([text isEqualToString:@"\n"])
     {
         [textView resignFirstResponder];
